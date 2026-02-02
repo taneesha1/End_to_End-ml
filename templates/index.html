@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rain Prediction Model</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f7f6; display: flex; justify-content: center; padding: 40px; }
+        .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; max-width: 400px; }
+        h2 { color: #333; text-align: center; }
+        .input-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-size: 0.9rem; color: #666; }
+        input { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box; }
+        button { width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem; }
+        button:hover { background: #0056b3; }
+        #result { margin-top: 20px; padding: 15px; border-radius: 4px; display: none; text-align: center; }
+        .rain { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Rain Predictor</h2>
+    <form id="predictForm">
+        <div class="input-group">
+            <label>Temperature (°C)</label>
+            <input type="number" step="any" id="Temperature" required>
+        </div>
+        <div class="input-group">
+            <label>Humidity (%)</label>
+            <input type="number" step="any" id="Humidity" required>
+        </div>
+        <div class="input-group">
+            <label>Wind Speed (km/h)</label>
+            <input type="number" step="any" id="Wind_Speed" required>
+        </div>
+        <div class="input-group">
+            <label>Cloud Cover (%)</label>
+            <input type="number" step="any" id="Cloud_Cover" required>
+        </div>
+        <div class="input-group">
+            <label>Pressure (hPa)</label>
+            <input type="number" step="any" id="Pressure" required>
+        </div>
+        <button type="submit">Analyze Weather</button>
+    </form>
+
+    <div id="result" class="rain">
+        <strong id="predictionText"></strong><br>
+        <span id="probabilityText"></span>
+    </div>
+</div>
+
+<script>
+    document.getElementById('predictForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const data = {
+            Temperature: document.getElementById('Temperature').value,
+            Humidity: document.getElementById('Humidity').value,
+            Wind_Speed: document.getElementById('Wind_Speed').value,
+            Cloud_Cover: document.getElementById('Cloud_Cover').value,
+            Pressure: document.getElementById('Pressure').value
+        };
+
+        const response = await fetch('/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        const result = await response.json();
+        const display = document.getElementById('result');
+        
+        if (result.status === 'success') {
+            display.style.display = 'block';
+
+            if(result.prediction === 1) {
+                 document.getElementById('predictionText').innerText = 'Rain is expected.';
+            } else {
+                 document.getElementById('predictionText').innerText = 'No rain expected.';
+            }
+           
+            document.getElementById('probabilityText').innerText = `Confidence: ${result.probability}`;
+        } else {
+            alert("Error: " + result.error);
+        }
+    });
+</script>
+
+</body>
+</html>
